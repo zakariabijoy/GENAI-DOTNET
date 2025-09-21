@@ -88,20 +88,63 @@ var client = new OpenAIClient(credentials, options).GetChatClient("openai/gpt-5-
 
 #region Sentiment Analysis
 
-var analysisPrompt = """
-        You will analyze the sentiment of the following product reviews. 
-        Each line is its own review. Output the sentiment of each review in a bulleted list and then provide a generate sentiment of all reviews.
+//var analysisPrompt = """
+//        You will analyze the sentiment of the following product reviews. 
+//        Each line is its own review. Output the sentiment of each review in a bulleted list and then provide a generate sentiment of all reviews.
 
-        I bought this product and it's amazing. I love it!
-        This product is terrible. I hate it.
-        I'm not sure about this product. It's okay.
-        I found this product based on the other reviews. It worked for a bit, and then it didn't.
-        """;
+//        I bought this product and it's amazing. I love it!
+//        This product is terrible. I hate it.
+//        I'm not sure about this product. It's okay.
+//        I found this product based on the other reviews. It worked for a bit, and then it didn't.
+//        """;
 
-Console.WriteLine($"user >>> {analysisPrompt}\n");
+//Console.WriteLine($"user >>> {analysisPrompt}\n");
 
-ChatResponse responseAnalysis = await client.GetResponseAsync(analysisPrompt);
+//ChatResponse responseAnalysis = await client.GetResponseAsync(analysisPrompt);
 
-Console.WriteLine($"assistant >>> \n{responseAnalysis}");
+//Console.WriteLine($"assistant >>> \n{responseAnalysis}");
+
+#endregion
+
+#region ChatApp
+
+// Start the conversation with context for the AI model
+List<ChatMessage> chatHistory = new()
+    {
+        new ChatMessage(ChatRole.System, """
+            You are a friendly hiking enthusiast who helps people discover fun hikes in their area.
+            You introduce yourself when first saying hello.
+            When helping people out, you always ask them for this information
+            to inform the hiking recommendation you provide:
+
+            1. The location where they would like to hike
+            2. What hiking intensity they are looking for
+
+            You will then provide three suggestions for nearby hikes that vary in length
+            after you get that information. You will also share an interesting fact about
+            the local nature on the hikes when making a recommendation. At the end of your
+            response, ask if there is anything else you can help with.
+        """)
+    };
+
+while (true)
+{
+    // Get user prompt and add to chat history
+    Console.WriteLine("Your prompt:");
+    var userPrompt = Console.ReadLine();
+    chatHistory.Add(new ChatMessage(ChatRole.User, userPrompt));
+
+    // Stream the AI response and add to chat history
+    Console.WriteLine("AI Response:");
+    var response = "";
+    await foreach (var item in
+        client.GetStreamingResponseAsync(chatHistory))
+    {
+        Console.Write(item.Text);
+        response += item.Text;
+    }
+    chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
+    Console.WriteLine();
+}
 
 #endregion

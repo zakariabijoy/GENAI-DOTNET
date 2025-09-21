@@ -21,7 +21,10 @@ var options = new OpenAIClientOptions()
 var client = new OpenAIClient(credentials, options).GetChatClient("openai/gpt-5-mini").AsIChatClient();
 
 //send prompt and get response
+string prompt = "What is AI? explain max 20 words";
+Console.WriteLine($"user >>>: {prompt}");
 
-ChatResponse response = await client.GetResponseAsync("What is AI? explain max 20 words");
+ChatResponse response = await client.GetResponseAsync(prompt);
 
-Console.WriteLine(response);
+Console.WriteLine($"assistant >>> {response}"); 
+Console.WriteLine($"Tokens used: in={response.Usage?.InputTokenCount}, out={response.Usage?.OutputTokenCount}");
